@@ -48,11 +48,24 @@
       name: 'Zoom',
       hostMatch: /(^|\.)zoom\.us$/i,
       inCallSelectors: [
-        'button[aria-label*="Leave" i][aria-label*="meeting" i]',
-        'button[aria-label*="End" i][aria-label*="meeting" i]',
+        // High-confidence: explicit leave/end buttons (broad — modern
+        // Zoom labels are just "Leave", not "Leave meeting").
+        'button[aria-label="Leave"]',
+        'button[aria-label="End"]',
+        'button[aria-label*="Leave" i]',
+        'button[aria-label*="End meeting" i]',
+        'button[aria-label*="End Meeting" i]',
+        // Class-based fallbacks Zoom has used across versions
         '.footer__leave-btn',
         '.footer-button__leave-btn',
-        '.leave-meeting-options__btn'
+        '.leave-meeting-options__btn',
+        'button.zm-btn--danger',
+        'button.footer__leave-btn-container',
+        // Meeting-app container fallbacks (only fire in-call, not on
+        // the join screen where these DOM roots don't exist yet).
+        '#zmmtg-root .footer',
+        '.meeting-client-inner .footer',
+        '.meeting-app .footer'
       ],
       participantExtractors: [
         {
@@ -60,12 +73,16 @@
           extract: (el) => parseInt((el.textContent || '').replace(/[^0-9]/g, ''), 10)
         },
         {
-          selector: 'button[aria-label*="participant" i]',
+          selector: 'button[aria-label*="participant" i], button[aria-label*="Participants" i]',
           extract: (el) => {
             const label = el.getAttribute('aria-label') || '';
             const m = label.match(/(\d+)/);
             return m ? parseInt(m[1], 10) : NaN;
           }
+        },
+        {
+          selector: '.participants-header__title, .participants-section-container__participants-count',
+          extract: (el) => parseInt((el.textContent || '').replace(/[^0-9]/g, ''), 10)
         }
       ]
     },
@@ -74,15 +91,29 @@
       name: 'Microsoft Teams',
       hostMatch: /(^|\.)teams\.(microsoft|live)\.com$/i,
       inCallSelectors: [
+        // High-confidence: hangup buttons across Teams versions
         '[data-tid="hangup-main-btn"]',
+        '[data-tid="hangup-button"]',
+        '[data-tid="hangupButton"]',
         '[data-tid="calling-hangup-button"]',
+        '[data-tid="call-end"]',
         'button[data-tid*="hangup" i]',
-        'button[aria-label*="Leave" i][aria-label*="call" i]',
-        'button[aria-label*="Hang up" i]'
+        'button[data-tid*="end-call" i]',
+        '#hangup-button',
+        // aria-label / title — modern Teams shows "Leave (Ctrl+Shift+H)"
+        'button[aria-label^="Leave" i]',
+        'button[aria-label*="Hang up" i]',
+        'button[title^="Leave" i]',
+        'button[title*="Hang up" i]',
+        // In-call screen containers (only present during an active call)
+        '[data-tid="calling-screen"]',
+        '[data-tid="in-call-screen"]',
+        '[data-tid="new-call-experience"]',
+        '[data-tid="call-stage"]'
       ],
       participantExtractors: [
         {
-          selector: '[data-tid="roster-button-tile"], button[aria-label*="people" i]',
+          selector: '[data-tid="roster-button-tile"], [data-tid="roster-button"], button[aria-label*="people" i], button[aria-label*="participants" i]',
           extract: (el) => {
             const label = el.getAttribute('aria-label') || el.textContent || '';
             const m = label.match(/(\d+)/);
@@ -90,8 +121,16 @@
           }
         },
         {
-          selector: '[data-tid="roster-participant-counter"]',
+          selector: '[data-tid="roster-participant-counter"], [data-tid="participant-count"]',
           extract: (el) => parseInt((el.textContent || '').replace(/[^0-9]/g, ''), 10)
+        },
+        {
+          selector: 'button[aria-label*="Show participants" i], button[aria-label*="Show people" i]',
+          extract: (el) => {
+            const label = el.getAttribute('aria-label') || '';
+            const m = label.match(/(\d+)/);
+            return m ? parseInt(m[1], 10) : NaN;
+          }
         }
       ]
     }

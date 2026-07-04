@@ -143,8 +143,12 @@
   function detectInCall() {
     for (const sel of platform.inCallSelectors) {
       const el = safe(() => document.querySelector(sel), null);
-      if (el && isVisible(el)) return true;
+      if (el && isVisible(el)) {
+        state.__matchedSelector = sel;
+        return true;
+      }
     }
+    state.__matchedSelector = null;
     return false;
   }
 
@@ -357,6 +361,15 @@
         return;
       }
       const inCall = detectInCall();
+      if (inCall !== state.__lastLoggedInCall) {
+        // Log state transitions so users can diagnose from DevTools.
+        console.log(
+          '[MCM] ' + platformId + ' in-call:',
+          inCall,
+          inCall ? '(matched: ' + state.__matchedSelector + ')' : ''
+        );
+        state.__lastLoggedInCall = inCall;
+      }
       if (inCall) {
         state.lastInCallSeen = Date.now();
         if (!state.session && !state.suppressUntilInCallFalse) startSession();
@@ -778,8 +791,57 @@
 
   /* ==================== boot ==================== */
 
+  function installDiagnose() {
+    // Attach to the isolated-world window so users can call this from
+    // DevTools console (switch context dropdown to the extension) to
+    // see which selectors match — the single most useful thing when
+    // Meet/Zoom/Teams changes its DOM.
+    try {
+      window.__MCM = window.__MCM || {};
+      window.__MCM.diagnose = function () {
+        const rows = [];
+        console.group('[MCM] diagnose — ' + platformId);
+        console.log('URL:', location.href);
+        console.log('platform enabled:', isPlatformEnabled());
+        console.log('settings:', state.settings);
+        console.log('session:', state.session);
+        console.log('lastInCallSeen:', state.lastInCallSeen);
+        console.log('---- in-call selectors ----');
+        for (const sel of platform.inCallSelectors) {
+          let el = null, err = null;
+          try { el = document.querySelector(sel); } catch (e) { err = e && e.message; }
+          const visible = el ? isVisible(el) : false;
+          const status = err ? 'ERR: ' + err
+            : el ? (visible ? 'MATCH (visible)' : 'match (hidden)')
+            : 'no match';
+          rows.push({ selector: sel, status });
+          console.log('  ' + sel + '  →  ' + status);
+        }
+        console.log('---- participant extractors ----');
+        for (const ext of platform.participantExtractors) {
+          let el = null, err = null, count = null;
+          try { el = document.querySelector(ext.selector); } catch (e) { err = e && e.message; }
+          if (el) {
+            try { count = ext.extract(el); } catch (e) { err = e && e.message; }
+          }
+          console.log('  ' + ext.selector + '  →  ' +
+            (err ? 'ERR: ' + err : el ? 'matched (n=' + count + ')' : 'no match'));
+        }
+        console.groupEnd();
+        return rows;
+      };
+      window.__MCM.state = state;
+      window.__MCM.forceStart = function () { startSession(); };
+      window.__MCM.forceEnd = function () { endSession('manual'); };
+    } catch (_) { /* isolated-world attach can fail on some pages */ }
+  }
+
   async function boot() {
     await fetchSettings();
+    console.log('[MCM] loaded on', platformId,
+      '- platform enabled:', isPlatformEnabled(),
+      '- run __MCM.diagnose() to inspect selectors');
+    installDiagnose();
     if (!isPlatformEnabled()) return;
     schedulePoll();
 
