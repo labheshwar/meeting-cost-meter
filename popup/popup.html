@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Meeting Cost Meter</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body class="theme-dark">
+  <header class="app-hdr">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-name">Meeting Cost Meter</span>
+    </div>
+    <button id="btn-options" class="icon-btn" title="Options" aria-label="Options">⚙</button>
+  </header>
+
+  <main>
+    <!-- Current tab session panel -->
+    <section id="section-current" class="panel" hidden>
+      <div class="panel-hdr">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span id="cur-platform" class="platform-tag">—</span>
+        <span id="cur-status" class="status-tag">Live</span>
+      </div>
+
+      <div id="cur-cost" class="cost mono" aria-live="polite">—</div>
+
+      <div class="meta-row">
+        <div class="meta-cell">
+          <div class="meta-label">Elapsed</div>
+          <div id="cur-elapsed" class="meta-value mono">00:00</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-label">Burn rate</div>
+          <div id="cur-burn" class="meta-value mono">—/s</div>
+        </div>
+      </div>
+
+      <div class="ctrl-grid">
+        <label class="lbl" for="cur-att">Attendees</label>
+        <div class="stepper">
+          <button id="cur-att-minus" class="step-btn" aria-label="Fewer attendees">−</button>
+          <input id="cur-att" class="num-input mono" type="number" min="1" max="999" step="1" inputmode="numeric" />
+          <button id="cur-att-plus" class="step-btn" aria-label="More attendees">+</button>
+        </div>
+
+        <label class="lbl" for="cur-rate">Hourly rate</label>
+        <input id="cur-rate" class="text-input mono" type="number" min="0" step="0.01" inputmode="decimal" />
+
+        <label class="lbl" for="cur-currency">Currency</label>
+        <select id="cur-currency" class="text-input"></select>
+      </div>
+
+      <div class="cta-row">
+        <button id="btn-pause" class="btn">Pause</button>
+        <button id="btn-reset" class="btn">Reset</button>
+        <button id="btn-end" class="btn danger">End</button>
+      </div>
+    </section>
+
+    <!-- Empty state -->
+    <section id="section-empty" class="panel muted" hidden>
+      <div class="empty">
+        <div class="empty-title">No live meeting on this tab</div>
+        <div class="empty-sub">Open Google Meet, Zoom, or Teams and join a call — the meter starts automatically.</div>
+      </div>
+    </section>
+
+    <!-- Other active meetings -->
+    <section id="section-other" class="panel" hidden>
+      <div class="section-title">Other running meetings</div>
+      <ul id="other-list" class="list"></ul>
+    </section>
+
+    <!-- History -->
+    <section class="panel">
+      <div class="section-title-row">
+        <div class="section-title">Recent history</div>
+        <div class="hdr-actions">
+          <button id="btn-export" class="link-btn">Export CSV</button>
+          <button id="btn-clear" class="link-btn danger">Clear</button>
+        </div>
+      </div>
+      <ul id="history-list" class="list scroll"></ul>
+      <div id="history-empty" class="empty-inline" hidden>No sessions yet.</div>
+    </section>
+  </main>
+
+  <script src="../shared/constants.js"></script>
+  <script src="../shared/format.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

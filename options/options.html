@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Meeting Cost Meter — Options</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body class="theme-dark">
+  <header class="hdr">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span>Meeting Cost Meter</span>
+    </div>
+    <div class="hdr-sub">Settings</div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Defaults</h2>
+      <div class="field">
+        <label for="hourlyRate">Default hourly rate</label>
+        <div class="input-with-hint">
+          <input id="hourlyRate" type="number" min="0" step="0.01" inputmode="decimal" />
+          <div class="err" id="err-hourlyRate" hidden></div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="currency">Default currency</label>
+        <select id="currency"></select>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Platforms</h2>
+      <p class="hint">Turn the meter off entirely on any platform, or disable the auto-detect of attendee counts if it's guessing wrong.</p>
+      <div id="platform-grid" class="platform-grid"></div>
+    </section>
+
+    <section class="card">
+      <h2>Cost thresholds</h2>
+      <p class="hint">The overlay flashes and (optionally) a native notification fires when a session crosses each threshold. Values are in your default currency.</p>
+      <ul id="threshold-list" class="threshold-list"></ul>
+      <div class="threshold-add">
+        <input id="threshold-new" type="number" min="0" step="0.01" placeholder="Add threshold…" inputmode="decimal" />
+        <button id="threshold-add-btn" class="btn small">Add</button>
+      </div>
+      <div class="err" id="err-thresholds" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Notifications</h2>
+      <label class="toggle">
+        <input id="notifications" type="checkbox" />
+        <span>Show a Chrome notification when a session crosses a threshold</span>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>Appearance</h2>
+      <div class="theme-row">
+        <label class="radio">
+          <input type="radio" name="theme" value="dark" />
+          <span>Dark</span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="theme" value="light" />
+          <span>Light</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Data</h2>
+      <div class="btn-row">
+        <button id="btn-export" class="btn">Export history (CSV)</button>
+        <button id="btn-clear" class="btn danger">Clear history</button>
+        <button id="btn-reset" class="btn danger">Reset all settings</button>
+      </div>
+      <div id="data-status" class="status" hidden></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="../shared/constants.js"></script>
+  <script src="../shared/format.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
